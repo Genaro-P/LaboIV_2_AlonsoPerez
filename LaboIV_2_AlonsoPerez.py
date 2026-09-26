@@ -30,18 +30,18 @@ print(telemetria.describe())
 #Definimos 3 criterios de alerta
 print("\n\n")
 print("Criterios de alerta:")
-print(" - Registros de voltaje mayor a 4 V")
-print(" - Registros de temperatura mayor a 20 C")
-print(" - Registors de porcentaje de humedad menor o igual a 50%")
+print(" - Registros de voltaje menor a 3.5 V")
+print(" - Registros de temperatura mayor a 45 C") #principalmente por las baterias, los circuitos suelen soportar hasta 70ºC o mas
+print(" - Registors de porcentaje de humedad mayor o igual a 70%") #mas de 70% en muchos dispositivos favorece la condensacion de agua en los circuitos
 
-#Filtro de filas con voltaje menor o igual a 4 V
-filtro_V = np.less_equal(telemetria['voltaje_bateria_V'], 4)
-filtro_T = np.less_equal(telemetria['temperatura_C'], 20)
-filtro_H = np.greater(telemetria['humedad_pct'], 50)
+#Filtro de filas con voltaje menor o igual a 3.5 V
+filtro_V = np.less_equal(telemetria['voltaje_bateria_V'], 3.5)
+filtro_T = np.greater_equal(telemetria['temperatura_C'], 50)
+filtro_H = np.greater(telemetria['humedad_pct'], 70)
 
-cumple_V = len(telemetria[filtro_V])
-cumple_T = len(telemetria[filtro_T])
-cumple_H = len(telemetria[filtro_H])
+cumple_V = len(telemetria)-len(telemetria[filtro_V])
+cumple_T = len(telemetria)-len(telemetria[filtro_T])
+cumple_H = len(telemetria)-len(telemetria[filtro_H])
 
 #Para contar cuales presentan al menos 1 alerta, hay que contar el total que cumple
 #con todo, y restarlo a la cantidad total de filas
@@ -51,17 +51,39 @@ cumple_H = len(telemetria[filtro_H])
 #hacer filtros del mismo tamanio que estos nuevos dataframes para que las funciones 
 #hagan los calculos que queremos
 
-telemetria_filtro_V = telemetria[filtro_V]
-filtro_V_T = np.less_equal(telemetria_filtro_V['temperatura_C'], 20)
-telemetria_filtro_V_T = telemetria_filtro_V[filtro_V_T]
-filtro_V_T_H = np.greater(telemetria_filtro_V_T['humedad_pct'], 50)
+#telemetria_filtro_V = telemetria[filtro_V]
+#filtro_V_T = np.less_equal(telemetria_filtro_V['temperatura_C'], 50)
+#telemetria_filtro_V_T = telemetria_filtro_V[filtro_V_T]
+#filtro_V_T_H = np.greater(telemetria_filtro_V_T['humedad_pct'], 80)
 
-cumple_todo = len(telemetria_filtro_V_T[filtro_V_T_H])
-una_alerta = len(telemetria) - cumple_todo
+alertas = telemetria[filtro_V | filtro_T | filtro_H]
+
+#cumple_todo = len(telemetria_filtro_V_T[filtro_V_T_H])
+#una_alerta = len(telemetria) - cumple_todo
+una_alerta=len(alertas)
+cumple_todo=len(telemetria) - una_alerta
 
 print("Cantidad de entradas que cumplen con el voltaje:", cumple_V)
 print("Cantidad de entradas que cumplen con la temperatura:", cumple_T)
 print("Cantidad de entradas que cumplen con el porcentaje de humedad:", cumple_H)
 print("Cantidad de entradas que poseen al menos una alerta:", una_alerta, "\n\n")
+
+
+#el grafico elegido sera el de la temperatura y la humedad a lo largo del tiempo
+plt.plot(telemetria.index, telemetria['voltaje_bateria_V'], label='Voltaje')
+plt.plot(telemetria.index, telemetria['humedad_pct'], label='Humedad')
+
+#se marcara con puntos rojos si existe por lo menos 1 alerta de cualquier tipo (no del tipo especifico del grafico)
+plt.scatter(alertas.index, alertas['voltaje_bateria_V'],color='red')
+plt.scatter(alertas.index, alertas['humedad_pct'],color='red')
+
+
+plt.xlabel('Tiempo')
+plt.ylabel('Valor')
+plt.title('Voltaje y humedad en el tiempo')
+plt.legend() #el recuadro que dice de que color es la temperatura y la humedad
+plt.grid()
+
+plt.show()
 
 
