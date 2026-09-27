@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-#URL del repositorio publico de github: https://github.com/Genaro-P/Labo2Info2AlonsoGenaro
+#URL del repositorio publico de github: https://github.com/Genaro-P/LaboIV_2_AlonsoPerez
 
 #Esto es el inciso 1
 telemetria = pd.read_csv('telemetria_nodo_iot.csv', parse_dates=['timestamp'])
